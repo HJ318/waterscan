@@ -65,4 +65,6 @@ with gr.Blocks(title="💧 Water Scan") as app:
     analyze_btn.click(fn=analyze, inputs=[cod, tp, tn, ph], outputs=result)
     history_btn.click(fn=show_history, inputs=None, outputs=logs)
 
-app.launch()
+import os
+app.launch(server_name="0.0.0.0", server_port=int(os.environ.get("PORT", 7860)))
+
