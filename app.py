@@ -62,19 +62,26 @@ HTML_TEMPLATE = """
             border-radius: 15px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
             display: inline-block;
-            text-align: left;
+            text-align: center;
         }
-        label {
-            font-weight: bold;
-            margin-top: 10px;
+        .section {
+            margin-bottom: 20px;
+        }
+        .color-option {
             display: inline-block;
+            width: 30px;
+            height: 30px;
+            border-radius: 6px;
+            margin: 4px;
+            cursor: pointer;
+            border: 2px solid transparent;
         }
-        select {
-            margin: 8px 0 15px 0;
-            padding: 6px 10px;
-            width: 100%;
-            border-radius: 8px;
-            border: 1px solid #bbb;
+        input[type="radio"] {
+            display: none;
+        }
+        input[type="radio"]:checked + label .color-option {
+            border: 2px solid #0288d1;
+            box-shadow: 0 0 5px #0288d1;
         }
         button {
             background: #0288d1;
@@ -84,6 +91,7 @@ HTML_TEMPLATE = """
             border-radius: 8px;
             font-size: 1em;
             cursor: pointer;
+            margin-top: 10px;
         }
         button:hover {
             background: #0277bd;
@@ -108,53 +116,51 @@ HTML_TEMPLATE = """
             margin-top: 0;
             color: #388e3c;
         }
-        .color-box {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border-radius: 4px;
-            margin-right: 6px;
-            border: 1px solid #ccc;
-        }
     </style>
 </head>
 <body>
     <h1>💧 Water Scan — 수질 측정 시스템</h1>
 
     <form method="post">
-        <label>COD (화학적 산소 요구량):</label><br>
-        <select name="cod">
+        <div class="section">
+            <h3>COD (화학적 산소 요구량)</h3>
             {% for c in cod_colors %}
-            <option value="{{ loop.index0 }}">
-                <span class="color-box" style="background:{{ c }}"></span> {{ c }}
-            </option>
+                <input type="radio" id="cod{{loop.index0}}" name="cod" value="{{loop.index0}}" required>
+                <label for="cod{{loop.index0}}">
+                    <div class="color-option" style="background: {{c}};"></div>
+                </label>
             {% endfor %}
-        </select><br>
+        </div>
 
-        <label>T-P (총인):</label><br>
-        <select name="tp">
+        <div class="section">
+            <h3>T-P (총인)</h3>
             {% for c in tp_colors %}
-            <option value="{{ loop.index0 }}">
-                <span class="color-box" style="background:{{ c }}"></span> {{ c }}
-            </option>
+                <input type="radio" id="tp{{loop.index0}}" name="tp" value="{{loop.index0}}" required>
+                <label for="tp{{loop.index0}}">
+                    <div class="color-option" style="background: {{c}};"></div>
+                </label>
             {% endfor %}
-        </select><br>
+        </div>
 
-        <label>T-N (총질소):</label><br>
-        <select name="tn">
+        <div class="section">
+            <h3>T-N (총질소)</h3>
             {% for c in tn_colors %}
-            <option value="{{ loop.index0 }}">
-                <span class="color-box" style="background:{{ c }}"></span> {{ c }}
-            </option>
+                <input type="radio" id="tn{{loop.index0}}" name="tn" value="{{loop.index0}}" required>
+                <label for="tn{{loop.index0}}">
+                    <div class="color-option" style="background: {{c}};"></div>
+                </label>
             {% endfor %}
-        </select><br>
+        </div>
 
-        <label>pH (수소 이온 농도):</label><br>
-        <select name="ph">
-            {% for i in range(0,14) %}
-            <option value="{{ i }}">{{ i }}</option>
+        <div class="section">
+            <h3>pH (수소 이온 농도)</h3>
+            {% for i in range(1,14) %}
+                <input type="radio" id="ph{{i}}" name="ph" value="{{i}}" required>
+                <label for="ph{{i}}">
+                    <div class="color-option" style="background:hsl({{i * 25}}, 80%, 60%);"></div>
+                </label>
             {% endfor %}
-        </select><br>
+        </div>
 
         <button type="submit">🔍 결과 확인</button>
     </form>
