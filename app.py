@@ -40,43 +40,116 @@ def calculate_grade(cod_idx, tp_idx, tn_idx, ph_idx):
 # HTML 템플릿
 HTML_TEMPLATE = """
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
     <title>💧 Water Scan</title>
     <style>
-        body { font-family: Arial, sans-serif; background: #f7fcff; text-align: center; padding: 20px; }
-        h1 { color: #0288d1; }
-        form { background: white; padding: 20px; border-radius: 15px; display: inline-block; }
-        select, button { margin: 10px; padding: 5px 10px; }
-        .history { background: #e3f2fd; padding: 10px; margin-top: 20px; border-radius: 10px; width: 80%; margin-left:auto; margin-right:auto; text-align:left; }
+        body {
+            font-family: "Pretendard", Arial, sans-serif;
+            background: linear-gradient(to bottom, #e0f7fa, #ffffff);
+            text-align: center;
+            padding: 30px;
+        }
+        h1 {
+            color: #0288d1;
+            font-size: 2.2em;
+            margin-bottom: 20px;
+        }
+        form {
+            background: white;
+            padding: 25px 40px;
+            border-radius: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            display: inline-block;
+            text-align: left;
+        }
+        label {
+            font-weight: bold;
+            margin-top: 10px;
+            display: inline-block;
+        }
+        select {
+            margin: 8px 0 15px 0;
+            padding: 6px 10px;
+            width: 100%;
+            border-radius: 8px;
+            border: 1px solid #bbb;
+        }
+        button {
+            background: #0288d1;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0277bd;
+        }
+        .result {
+            margin-top: 25px;
+            font-size: 1.3em;
+            font-weight: bold;
+        }
+        .history {
+            background: #f1f8e9;
+            padding: 15px;
+            margin-top: 30px;
+            border-radius: 12px;
+            width: 80%;
+            margin-left: auto;
+            margin-right: auto;
+            text-align: left;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+        .history h3 {
+            margin-top: 0;
+            color: #388e3c;
+        }
+        .color-box {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            margin-right: 6px;
+            border: 1px solid #ccc;
+        }
     </style>
 </head>
 <body>
     <h1>💧 Water Scan — 수질 측정 시스템</h1>
+
     <form method="post">
-        <label>COD:</label>
+        <label>COD (화학적 산소 요구량):</label><br>
         <select name="cod">
             {% for c in cod_colors %}
-            <option value="{{ loop.index0 }}">{{ c }}</option>
+            <option value="{{ loop.index0 }}">
+                <span class="color-box" style="background:{{ c }}"></span> {{ c }}
+            </option>
             {% endfor %}
         </select><br>
 
-        <label>T-P:</label>
+        <label>T-P (총인):</label><br>
         <select name="tp">
             {% for c in tp_colors %}
-            <option value="{{ loop.index0 }}">{{ c }}</option>
+            <option value="{{ loop.index0 }}">
+                <span class="color-box" style="background:{{ c }}"></span> {{ c }}
+            </option>
             {% endfor %}
         </select><br>
 
-        <label>T-N:</label>
+        <label>T-N (총질소):</label><br>
         <select name="tn">
             {% for c in tn_colors %}
-            <option value="{{ loop.index0 }}">{{ c }}</option>
+            <option value="{{ loop.index0 }}">
+                <span class="color-box" style="background:{{ c }}"></span> {{ c }}
+            </option>
             {% endfor %}
         </select><br>
 
-        <label>pH:</label>
+        <label>pH (수소 이온 농도):</label><br>
         <select name="ph">
             {% for i in range(0,14) %}
             <option value="{{ i }}">{{ i }}</option>
@@ -87,7 +160,7 @@ HTML_TEMPLATE = """
     </form>
 
     {% if result %}
-        <h2>결과: {{ result }}</h2>
+        <div class="result">💧 결과: {{ result }}</div>
     {% endif %}
 
     <div class="history">
@@ -103,6 +176,7 @@ HTML_TEMPLATE = """
 </body>
 </html>
 """
+
 
 # 라우트 설정
 @app.route("/", methods=["GET", "POST"])
