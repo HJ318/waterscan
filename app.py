@@ -1,6 +1,7 @@
-import gradio as gr
+from flask import Flask, render_template_string, request
 import datetime
-import os
+
+app = Flask(__name__)
 
 # 색상 정의
 COD_COLORS = ["#E6FF99", "#FFFF66", "#FFCC33", "#FF9933", "#FF6600", "#FF3300"]
@@ -11,7 +12,8 @@ PH_COLORS = [
     "#99FF00", "#00FF66", "#00CCFF", "#0066FF", "#0000FF", "#6600FF", "#9900CC"
 ]
 
-# 등급 계산 함수
+history = []
+
 def calculate_grade(cod_idx, tp_idx, tn_idx, ph_idx):
     score = 0
     if cod_idx <= 1: score += 1
@@ -20,59 +22,96 @@ def calculate_grade(cod_idx, tp_idx, tn_idx, ph_idx):
     if 6 <= ph_idx <= 8: score += 1
 
     if score == 4:
-        grade = "✅ 1급수 (매우 깨끗함)"
+        return "✅ 1급수 (매우 깨끗함)"
     elif score == 3:
-        grade = "✅ 2급수 (좋음)"
+        return "✅ 2급수 (좋음)"
     elif score == 2:
-        grade = "⚠️ 3급수 (주의 필요)"
+        return "⚠️ 3급수 (주의 필요)"
     else:
-        grade = "❌ 4급수 (오염됨)"
-    return grade
+        return "❌ 4급수 (오염됨)"
 
-# 기록 저장
-history = []
+HTML_TEMPLATE = """
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>💧 Water Scan</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f7fcff; text-align: center; padding: 20px; }
+        h1 { color: #0288d1; }
+        form { background: white; padding: 20px; border-radius: 15px; display: inline-block; }
+        select, button { margin: 10px; padding: 5px 10px; }
+        .history { background: #e3f2fd; padding: 10px; margin-top: 20px; border-radius: 10px; width: 80%; margin-left:auto; margin-right:auto; text-align:left; }
+    </style>
+</head>
+<body>
+    <h1>💧 Water Scan — 수질 측정 시스템</h1>
+    <form method="post">
+        <label>COD:</label>
+        <select name="cod">
+            {% for c in cod_colors %}
+            <option value="{{ loop.index0 }}">{{ c }}</option>
+            {% endfor %}
+        </select><br>
 
-def analyze(cod, tp, tn, ph):
-    date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    grade = calculate_grade(
-        COD_COLORS.index(cod),
-        TP_COLORS.index(tp),
-        TN_COLORS.index(tn),
-        PH_COLORS.index(ph),
-    )
-    history.append({"date": date, "COD": cod, "T-P": tp, "T-N": tn, "pH": ph, "등급": grade})
-    return f"📅 날짜: {date}\n\n💧 수질 등급 결과: {grade}"
+        <label>T-P:</label>
+        <select name="tp">
+            {% for c in tp_colors %}
+            <option value="{{ loop.index0 }}">{{ c }}</option>
+            {% endfor %}
+        </select><br>
 
-def show_history():
-    if not history:
-        return "📭 저장된 기록이 없습니다."
-    text = "📜 입력 기록\n\n"
-    for h in reversed(history[-10:]):
-        text += f"{h['date']} — COD:{h['COD']} | T-P:{h['T-P']} | T-N:{h['T-N']} | pH:{h['pH']} → {h['등급']}\n"
-    return text
+        <label>T-N:</label>
+        <select name="tn">
+            {% for c in tn_colors %}
+            <option value="{{ loop.index0 }}">{{ c }}</option>
+            {% endfor %}
+        </select><br>
 
-with gr.Blocks(title="💧 Water Scan") as demo:
-    gr.Markdown("## 💧 Water Scan — 수질 측정 시스템\n항목별로 값을 선택하고 결과를 확인하세요.")
+        <label>pH:</label>
+        <select name="ph">
+            {% for i in range(0,14) %}
+            <option value="{{ i }}">{{ i }}</option>
+            {% endfor %}
+        </select><br>
 
-    with gr.Row():
-        cod = gr.Radio(COD_COLORS, label="COD (화학적 산소 요구량)")
-        tp = gr.Radio(TP_COLORS, label="T-P (총인)")
-        tn = gr.Radio(TN_COLORS, label="T-N (총질소)")
-        ph = gr.Radio(PH_COLORS, label="pH (수소 이온 농도)")
+        <button type="submit">🔍 결과 확인</button>
+    </form>
 
-    with gr.Row():
-        analyze_btn = gr.Button("🔍 결과 확인하기", variant="primary")
-        history_btn = gr.Button("📄 기록 보기")
+    {% if result %}
+        <h2>결과: {{ result }}</h2>
+    {% endif %}
 
-    result = gr.Textbox(label="결과", lines=3)
-    logs = gr.Textbox(label="저장 기록", lines=8)
+    <div class="history">
+        <h3>📜 최근 기록</h3>
+        {% if history %}
+            {% for h in history %}
+                <div>📅 {{ h.date }} — COD:{{ h.cod }} | T-P:{{ h.tp }} | T-N:{{ h.tn }} | pH:{{ h.ph }} → {{ h.grade }}</div>
+            {% endfor %}
+        {% else %}
+            <p>📭 기록이 없습니다.</p>
+        {% endif %}
+    </div>
+</body>
+</html>
+"""
 
-    analyze_btn.click(fn=analyze, inputs=[cod, tp, tn, ph], outputs=result)
-    history_btn.click(fn=show_history, outputs=logs)
-
-# Render용 entry point
-app = demo
+@app.route("/", methods=["GET", "POST"])
+def index():
+    result = None
+    if request.method == "POST":
+        cod = int(request.form["cod"])
+        tp = int(request.form["tp"])
+        tn = int(request.form["tn"])
+        ph = int(request.form["ph"])
+        result = calculate_grade(cod, tp, tn, ph)
+        history.append({
+            "date": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "cod": cod, "tp": tp, "tn": tn, "ph": ph, "grade": result
+        })
+    return render_template_string(HTML_TEMPLATE, cod_colors=COD_COLORS, tp_colors=TP_COLORS,
+                                  tn_colors=TN_COLORS, result=result, history=reversed(history))
 
 if __name__ == "__main__":
-    app.launch(server_name="0.0.0.0", server_port=int(os.environ.get("PORT", 7860)))
-
+    import os
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
