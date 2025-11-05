@@ -1,5 +1,6 @@
 from flask import Flask, render_template_string, request
 import datetime
+import os
 
 app = Flask(__name__)
 
@@ -12,14 +13,20 @@ PH_COLORS = [
     "#99FF00", "#00FF66", "#00CCFF", "#0066FF", "#0000FF", "#6600FF", "#9900CC"
 ]
 
+# 기록 저장 리스트
 history = []
 
+# 등급 계산 함수
 def calculate_grade(cod_idx, tp_idx, tn_idx, ph_idx):
     score = 0
-    if cod_idx <= 1: score += 1
-    if tp_idx <= 1: score += 1
-    if tn_idx <= 2: score += 1
-    if 6 <= ph_idx <= 8: score += 1
+    if cod_idx <= 1:
+        score += 1
+    if tp_idx <= 1:
+        score += 1
+    if tn_idx <= 2:
+        score += 1
+    if 6 <= ph_idx <= 8:
+        score += 1
 
     if score == 4:
         return "✅ 1급수 (매우 깨끗함)"
@@ -30,6 +37,7 @@ def calculate_grade(cod_idx, tp_idx, tn_idx, ph_idx):
     else:
         return "❌ 4급수 (오염됨)"
 
+# HTML 템플릿
 HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html>
@@ -96,6 +104,7 @@ HTML_TEMPLATE = """
 </html>
 """
 
+# 라우트 설정
 @app.route("/", methods=["GET", "POST"])
 def index():
     result = None
@@ -109,9 +118,16 @@ def index():
             "date": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "cod": cod, "tp": tp, "tn": tn, "ph": ph, "grade": result
         })
-    return render_template_string(HTML_TEMPLATE, cod_colors=COD_COLORS, tp_colors=TP_COLORS,
-                                  tn_colors=TN_COLORS, result=result, history=reversed(history))
+    return render_template_string(
+        HTML_TEMPLATE,
+        cod_colors=COD_COLORS,
+        tp_colors=TP_COLORS,
+        tn_colors=TN_COLORS,
+        result=result,
+        history=reversed(history)
+    )
 
+# Render 배포용
 if __name__ == "__main__":
-    import os
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
